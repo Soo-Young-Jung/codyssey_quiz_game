@@ -56,31 +56,38 @@ class QuizGame:
         """
         
         for number, quizz in enumerate(self.quizzes, start=1):
+            # 현재 플레이어의 점수를 초기화한다.
+            score = 0
+
             print(f"\nQuestion {number}:")
             quizz.show_question()
             user_answer = int(input("Enter your answer (1-4): "))
             
             if quizz.check_answer(user_answer):
                 print("정답입니다!")
-                self.best_score += 20
+                score += 20
             elif user_answer == 5:
 
                 print(f"힌트: {quizz.hint}")
-                self.best_score -= 5
+                self.score -= 5
 
                 # 사용자가 힌트를 확인한 후 다시 답을 입력하도록 안내
                 user_answer = int(input("Enter your answer (1-4): "))
 
                 if quizz.check_answer(user_answer):
                     print("정답입니다!")
-                    self.best_score += 20
+                    self.score += 20
                 else:
                     print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
             else:
                 print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
-
+        # 최고 점수 갱신 및 출력
+        if(self.score > self.best_score):
+            self.best_score = self.score
+            print(f"축하합니다! 새로운 최고 점수: {self.best_score}점")
+            self.save_data()
 
 
     def add_quiz(self):
