@@ -18,6 +18,7 @@ class Quiz:
         퀴즈 문제와 선택지를 출력하는 메서드
         """
         print(self.question)
+        print("# 5번 선택시 힌트를 확인할 수 있습니다(사용시 5점 차감).")
 
         """ 선택지를 출력 자료형식으로 출력한다. (1~4) """
         for number, choice in enumerate(self.choices, start=1):
@@ -53,11 +54,41 @@ class QuizGame:
         모든 문제를 풀면 결과를 표시한다.
         퀴즈가 없는 경우를 처리한다.
         """
+        
+        for number, quizz in enumerate(self.quizzes, start=1):
+            print(f"\nQuestion {number}:")
+            quizz.show_question()
+            user_answer = int(input("Enter your answer (1-4): "))
+            
+            if quizz.check_answer(user_answer):
+                print("정답입니다!")
+                self.best_score += 20
+            elif user_answer == 5:
+
+                print(f"힌트: {quizz.hint}")
+                self.best_score -= 5
+
+                # 사용자가 힌트를 확인한 후 다시 답을 입력하도록 안내
+                user_answer = int(input("Enter your answer (1-4): "))
+
+                if quizz.check_answer(user_answer):
+                    print("정답입니다!")
+                    self.best_score += 20
+                else:
+                    print(f"오답입니다! 정답은 {quizz.answer}입니다.")
+
+            else:
+                print(f"오답입니다! 정답은 {quizz.answer}입니다.")
+
+
+
 
     def add_quiz(self):
         """ 
         새로운 퀴즈를 추가하는 메서드
         """
+
+        
 
 
     def list_quizzes(self):
