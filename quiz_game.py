@@ -336,38 +336,38 @@ class QuizGame:
         """
         self.quizzes = [
             Quiz(
-                "What is the capital of France?",
-                ["Berlin", "Madrid", "Paris", "Rome"],
-                3,
-                "It's known as the city of love."
-            ),
-
-            Quiz(
-                "What is the capital of Germany?",
-                ["Paris", "Berlin", "Rome", "Madrid"],
+                "다음 중 파이썬에서 변수에 값을 저장하는 올바른 방법은 무엇인가요?",
+                ["number := 10;", "number = 10", "10 = number", "int number = 10"],
                 2,
-                "It's the largest city in Germany."
+                "변수에 값을 대입할 때 사용하는 기호를 생각해 보세요."
             ),
 
             Quiz(
-                "What is the capital of Italy?",
-                ["Madrid", "London", "Rome", "Berlin"],
+                "다음 코드의 실행 결과로 올바른 것은 무엇인가요? print(type(\"Hello\"))",
+                ["<class 'float'>", "<class 'bool'>", "<class 'int'>", "<class 'str'>"],
+                4,
+                "문자열의 타입을 확인하세요."
+            ),
+
+            Quiz(
+                "다음 코드에서 출력되는 값은 무엇인가요? score = 75 if score >= 80: print(\"합격\") else: print(\"불합격\")",
+                ["아무것도 출력되지 않음", "합격", "불합격", "75"],
                 3,
-                "It's famous for the Colosseum."
+                "조건문의 결과에 따라 다른 값을 출력합니다."
             ),
 
             Quiz(
-                "What is the capital of Spain?",
-                ["Lisbon", "Madrid", "Paris", "Vienna"],
-                2,
-                "It's famous for the Prado Museum."
+                "다음 코드가 실행되었을 때 출력되는 값은 무엇인가요? for i in range(3): print(i)",
+                ["0, 1, 2", "1, 2, 3", "0, 1, 2, 3", "0, 1, 2, 3, 4"],
+                1,
+                "range() 함수는 시작값부터 끝값 전까지의 숫자를 생성합니다."
             ),
 
             Quiz(
-                "What is the capital of Japan?",
-                ["Osaka", "Kyoto", "Tokyo", "Nagoya"],
-                3,
-                "It's one of the world's largest metropolitan areas."
+                "다음 함수의 실행 결과는 무엇인가요? def add(a, b): return a + b print(add(3, 5))",
+                ["8", "15", "3", "5"],
+                1,
+                "return 문에서 수행하는 연산을 확인해 보세요."
             )
         ]
 
