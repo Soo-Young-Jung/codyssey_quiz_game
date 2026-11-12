@@ -213,27 +213,27 @@ codyssey_quiz_game/
 ### 7-1. 개발 환경 설정 스크린샷
 
  - **VSOCDE 개발 환경**
- [![대체 텍스트](img\VSCODE.png)]
+ [![대체 텍스트](img/VSCODE.png)]
 
  - **Python 버전** 
- [![대체 텍스트](img\python_version.png)]
+ [![대체 텍스트](img/python_version.png)]
 
  - **Git 설정**
- [![대체 텍스트](img\git_config.png)]
+ [![대체 텍스트](img/git_config.png)]
 
 ### 7-2. 프로그램 실행 결과 스크린샷(퀴즈 추가, 목록, 플레이, 점수)
 
  - **메인메뉴**
- ![대체 텍스트](img\game_01.png)
+ ![대체 텍스트](img/game_01.png)
 
  - **문제풀이**
- ![대체 텍스트](img\game_02.png)
+ ![대체 텍스트](img/game_02.png)
 
  - **문제풀이 완료 후**
- ![대체 텍스트](img\game_03.png)
+ ![대체 텍스트](img/game_03.png)
 
  - **잘못된 입력 처리**
- ![대체 텍스트](img\game_04.png)
+ ![대체 텍스트](img/game_04.png)
 
  - **프로그램 실행 후 생성된 state.json 파일**
- [![대체 텍스트](img\game_05.png)]
+ [![대체 텍스트](img/game_05.png)]
