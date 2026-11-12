@@ -1,4 +1,7 @@
 import json
+import subprocess
+import platform
+
 
 
 class Quiz:
@@ -21,7 +24,6 @@ class Quiz:
         퀴즈 문제와 선택지를 출력하는 메서드
         """
         print(self.question)
-        print("# 5번 선택시 힌트를 확인할 수 있습니다(사용시 5점 차감).")
 
         """ 선택지를 출력 자료형식으로 출력한다. (1~4) """
         for number, choice in enumerate(self.choices, start=1):
@@ -42,6 +44,8 @@ class QuizGame:
     def __init__(self, quizzes=[]):
         self.quizzes = quizzes
         self.best_score = 0
+        self.score = 0
+        self.save_score_history = []
 
         # JSON 파일에서 데이터를 불러온다.
         self.load_data()
@@ -50,6 +54,29 @@ class QuizGame:
         """ 
          메뉴 표시하는 메서드
         """
+        clear_console()
+        
+        print("=== Quiz Game ===")
+        print("1. 퀴즈 풀기")
+        print("2. 퀴즈 추가")
+        print("3. 퀴즈 목록 보기")
+        print("4. 점수 확인")
+        print("5. 종료")
+
+        user_answer = int(input("Enter your answer (1-5): "))
+
+        if user_answer == 1:
+            self.play()
+        elif user_answer == 2:
+            self.add_quiz()
+        elif user_answer == 3:
+            self.list_quizzes()
+        elif user_answer == 4:
+            self.show_score()
+        elif user_answer == 5:
+            print("게임을 종료합니다.")
+            exit()
+
 
     def play(self):
         """ 
@@ -63,22 +90,24 @@ class QuizGame:
         
         for number, quizz in enumerate(self.quizzes, start=1):
             # 현재 플레이어의 점수를 초기화한다.
-            score = 0
+            self.score = 0
 
             print(f"\nQuestion {number}:")
+            print("# 5번 선택시 힌트를 확인할 수 있습니다(사용시 5점 차감).")
+            print("# 9번 선택시 게임을 메뉴로 돌아갑니다.")
             quizz.show_question()
-            user_answer = int(input("Enter your answer (1-4): "))
+            user_answer = int(input("정답을 입력하세요 : "))
             
             if quizz.check_answer(user_answer):
                 print("정답입니다!")
-                score += 20
+                self.score += 20
             elif user_answer == 5:
 
                 print(f"힌트: {quizz.hint}")
                 self.score -= 5
 
                 # 사용자가 힌트를 확인한 후 다시 답을 입력하도록 안내
-                user_answer = int(input("Enter your answer (1-4): "))
+                user_answer = int(input("정답을 입력하세요 : "))
 
                 if quizz.check_answer(user_answer):
                     print("정답입니다!")
@@ -90,8 +119,8 @@ class QuizGame:
                 print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
         # 최고 점수 갱신 및 출력
-        if(score > self.best_score):
-            self.best_score = score
+        if(self.score > self.best_score):
+            self.best_score = self.score
             print(f"축하합니다! 새로운 최고 점수: {self.best_score}점")
             self.save_data()
 
@@ -125,9 +154,6 @@ class QuizGame:
         저장된 퀴즈 목록을 확인할 수 있다.
         퀴즈가 없는 경우를 처리한다.
         """
-
-        if(len(self.quizzes) == 0):
-            self.reset_quizzes()
 
         for number, quizz in enumerate(self.quizzes, start=1):
             print(f"\nQuestion {number} :")
@@ -199,6 +225,10 @@ class QuizGame:
     def load_data(self):
         """ 
         JSON 파일에서 퀴즈 데이터를 불러오는 메서드
+        파일이 손상되었거나 읽기/쓰기 오류가 발생한 경우를 try/except 로 처리한다.
+        최소 스키마 예시(데이터 형태 참고; 키 이름/구조는 일관되게 유지):
+        quizzes: 퀴즈 목록
+        best_score: 최고 점수(또는 최고 정답 수 등)
         """
         with open("state.json", "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -268,7 +298,15 @@ class QuizGame:
             )
         ]
 
-
+def clear_console():
+    """ 
+    콘솔 화면을 지우는 함수
+    실행 환경이 윈도우일 때와 유닉스 계열일 때를 구분하여 처리한다.
+    """
+    if platform.system() == "Windows":
+        subprocess.run(["cls"], shell=True)
+    else:
+        subprocess.run(["clear"], shell=True)
 
 quiz_game = QuizGame()
 
