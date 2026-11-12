@@ -2,8 +2,6 @@ import json
 import subprocess
 import platform
 
-
-
 class Quiz:
     """ 
     Quiz 클래스
@@ -44,8 +42,9 @@ class QuizGame:
     def __init__(self, quizzes=[]):
         self.quizzes = quizzes
         self.best_score = 0
+
         self.score = 0
-        self.save_score_history = []
+        self.save_score_historys = []
 
         # JSON 파일에서 데이터를 불러온다.
         self.load_data()
@@ -87,20 +86,26 @@ class QuizGame:
         모든 문제를 풀면 결과를 표시한다.
         퀴즈가 없는 경우를 처리한다.
         """
+        self.score = 0  # 게임 시작 시 점수를 초기화한다.
+        total_quiz_count = len(self.quizzes) # 총 퀴즈 개수를 계산한다.
+        correct_quiz_count = 0  # 정답 개수를 초기화한다.
         
         for number, quizz in enumerate(self.quizzes, start=1):
-            # 현재 플레이어의 점수를 초기화한다.
-            self.score = 0
 
-            print(f"\nQuestion {number}:")
+            # 콘솔 화면을 지운다.
+            clear_console()
+
             print("# 5번 선택시 힌트를 확인할 수 있습니다(사용시 5점 차감).")
             print("# 9번 선택시 게임을 메뉴로 돌아갑니다.")
+
+            print(f"\n{number} 번 퀴즈 :")
             quizz.show_question()
             user_answer = int(input("정답을 입력하세요 : "))
             
             if quizz.check_answer(user_answer):
                 print("정답입니다!")
                 self.score += 20
+                correct_quiz_count += 1
             elif user_answer == 5:
 
                 print(f"힌트: {quizz.hint}")
@@ -112,19 +117,26 @@ class QuizGame:
                 if quizz.check_answer(user_answer):
                     print("정답입니다!")
                     self.score += 20
+                    correct_quiz_count += 1
                 else:
                     print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
             else:
                 print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
+
+        # 콘솔 화면을 지운다.
+        clear_console()
+        print(f"\n게임 종료! 최종 점수: {self.score}점")
+        print(f"정답 개수: {correct_quiz_count}/{total_quiz_count}")
+
         # 최고 점수 갱신 및 출력
         if(self.score > self.best_score):
             self.best_score = self.score
             print(f"축하합니다! 새로운 최고 점수: {self.best_score}점")
-            self.save_data()
 
-        self.show_menu()
+        self.save_data()
+        self.go_back_to_menu()
 
 
     def add_quiz(self):
@@ -145,7 +157,7 @@ class QuizGame:
         self.quizzes.append(new_quiz)
 
         self.save_data()
-        self.show_menu()
+        self.go_back_to_menu()
 
 
     def list_quizzes(self):
@@ -155,9 +167,13 @@ class QuizGame:
         퀴즈가 없는 경우를 처리한다.
         """
 
+        clear_console()
+
         for number, quizz in enumerate(self.quizzes, start=1):
-            print(f"\nQuestion {number} :")
+            print(f"\n{number} 번 퀴즈 :")
             print(f"퀴즈: {quizz.question}")
+
+        self.go_back_to_menu()
 
 
     def show_score(self):
@@ -169,8 +185,14 @@ class QuizGame:
         아직 퀴즈를 풀지 않은 경우를 처리한다.
         """
 
+        clear_console()
 
-    def save_data(self, save_data="score"):
+        print(f"현재 점수: {self.score}점 / 최고 점수: {self.best_score}점")
+
+        self.go_back_to_menu()
+
+
+    def save_data(self):
         """ 
         퀴즈 데이터를 JSON 파일에 저장하는 메서드
         퀴즈 데이터와 최고 점수를 프로젝트 루트의 state.json 에 저장하는 기능을 구현한다.(UTF-8 인코딩 권장)
@@ -180,45 +202,36 @@ class QuizGame:
         최소 스키마 예시(데이터 형태 참고; 키 이름/구조는 일관되게 유지):
         quizzes: 퀴즈 목록
         best_score: 최고 점수(또는 최고 정답 수 등)
+        save_score_historys: 점수 기록 목록
         """
 
-        if(save_data == "score"):
-            data = {
-                "quizzes": [
-                    {
-                        "question": quiz.question,
-                        "choices": quiz.choices,
-                        "answer": quiz.answer,
-                        "hint": quiz.hint
-                    }
-                    for quiz in self.quizzes
-                ],
-                "best_score": self.best_score
-            }
+        data = {
+            "quizzes": [
+                {
+                    "question": quiz.question,
+                    "choices": quiz.choices,
+                    "answer": quiz.answer,
+                    "hint": quiz.hint
+                }
+                for quiz in self.quizzes
+            ],
+            "best_score": self.best_score,
+            "save_score_historys": [
+                {
+                    "score": save_score_history.score,
+                    "date": save_score_history.date,
+                    "correct_quiz_count": save_score_history.correct_quiz_count,
+                    "total_quiz_count": save_score_history.total_quiz_count
+                }
+                for save_score_history in self.save_score_historys
+            ]
+        }
 
-            try:
-                with open("state.json", "w", encoding="utf-8") as file:
-                    json.dump(data, file, ensure_ascii=False, indent=4)
-            except IOError:
-                print("Error: Could not write to state.json")
-        else:
-            data = {
-                "quizzes": [
-                    {
-                        "question": quiz.question,
-                        "choices": quiz.choices,
-                        "answer": quiz.answer,
-                        "hint": quiz.hint
-                    }
-                    for quiz in self.quizzes
-                ]
-            }
-
-            try:
-                with open("state.json", "w", encoding="utf-8") as file:
-                    json.dump(data, file, ensure_ascii=False, indent=4)
-            except IOError:
-                print("Error: Could not write to state.json")
+        try:
+            with open("state.json", "w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+        except IOError:
+            print("Error: Could not write to state.json")
 
 
 
@@ -229,6 +242,7 @@ class QuizGame:
         최소 스키마 예시(데이터 형태 참고; 키 이름/구조는 일관되게 유지):
         quizzes: 퀴즈 목록
         best_score: 최고 점수(또는 최고 정답 수 등)
+        save_score_historys: 점수 기록 목록
         """
         with open("state.json", "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -251,7 +265,15 @@ class QuizGame:
                     for quiz_data in quizzes
                 ]
                 self.best_score = data.get("best_score", 0)
+                self.save_score_historys = data.get("save_score_historys", []);
 
+    def go_back_to_menu(self):
+        """ 
+        메뉴로 돌아가는 메서드
+        유저가 특정 키를 입력해야만 메뉴로 돌아가도록 안내한다.
+        """
+        input("메뉴로 돌아가려면 Enter 키를 누르세요...")
+        self.show_menu()
 
     def reset_quizzes(self):
         """ 
@@ -309,5 +331,4 @@ def clear_console():
         subprocess.run(["clear"], shell=True)
 
 quiz_game = QuizGame()
-
-quiz_game.play()
+quiz_game.show_menu()
