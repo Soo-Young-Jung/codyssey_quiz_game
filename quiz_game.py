@@ -1,3 +1,6 @@
+import json
+
+
 class Quiz:
     """ 
     Quiz 클래스
@@ -36,9 +39,12 @@ class QuizGame:
     속성: 퀴즈 목록, 최고 점수 등
     메서드: 메뉴 표시, 퀴즈 풀기, 퀴즈 추가, 목록 보기, 점수 확인, 파일 저장/불러오기 등
     """
-    def __init__(self, quizzes):
+    def __init__(self, quizzes=[]):
         self.quizzes = quizzes
         self.best_score = 0
+
+        # JSON 파일에서 데이터를 불러온다.
+        self.load_data()
 
     def show_menu(self):
         """ 
@@ -84,10 +90,12 @@ class QuizGame:
                 print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
         # 최고 점수 갱신 및 출력
-        if(self.score > self.best_score):
-            self.best_score = self.score
+        if(score > self.best_score):
+            self.best_score = score
             print(f"축하합니다! 새로운 최고 점수: {self.best_score}점")
             self.save_data()
+
+        self.show_menu()
 
 
     def add_quiz(self):
@@ -95,7 +103,20 @@ class QuizGame:
         새로운 퀴즈를 추가하는 메서드
         """
 
-        
+        question = input("퀴즈를 입력하세요 : ")
+        choices = []
+        for i in range(4):
+            choice = input(f"{i + 1}번 선택지를 입력하세요 : ")
+            choices.append(choice)
+
+        answer = int(input("정답 번호를 입력하세요 (1-4) : "))
+        hint = input("퀴즈에 대한 힌트를 입력하세요 : ")
+
+        new_quiz = Quiz(question, choices, answer, hint)
+        self.quizzes.append(new_quiz)
+
+        self.save_data()
+        self.show_menu()
 
 
     def list_quizzes(self):
@@ -104,6 +125,13 @@ class QuizGame:
         저장된 퀴즈 목록을 확인할 수 있다.
         퀴즈가 없는 경우를 처리한다.
         """
+
+        if(len(self.quizzes) == 0):
+            self.reset_quizzes()
+
+        for number, quizz in enumerate(self.quizzes, start=1):
+            print(f"\nQuestion {number} :")
+            print(f"퀴즈: {quizz.question}")
 
 
     def show_score(self):
@@ -116,7 +144,7 @@ class QuizGame:
         """
 
 
-    def save_data(self):
+    def save_data(self, save_data="score"):
         """ 
         퀴즈 데이터를 JSON 파일에 저장하는 메서드
         퀴즈 데이터와 최고 점수를 프로젝트 루트의 state.json 에 저장하는 기능을 구현한다.(UTF-8 인코딩 권장)
@@ -128,53 +156,120 @@ class QuizGame:
         best_score: 최고 점수(또는 최고 정답 수 등)
         """
 
+        if(save_data == "score"):
+            data = {
+                "quizzes": [
+                    {
+                        "question": quiz.question,
+                        "choices": quiz.choices,
+                        "answer": quiz.answer,
+                        "hint": quiz.hint
+                    }
+                    for quiz in self.quizzes
+                ],
+                "best_score": self.best_score
+            }
+
+            try:
+                with open("state.json", "w", encoding="utf-8") as file:
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+            except IOError:
+                print("Error: Could not write to state.json")
+        else:
+            data = {
+                "quizzes": [
+                    {
+                        "question": quiz.question,
+                        "choices": quiz.choices,
+                        "answer": quiz.answer,
+                        "hint": quiz.hint
+                    }
+                    for quiz in self.quizzes
+                ]
+            }
+
+            try:
+                with open("state.json", "w", encoding="utf-8") as file:
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+            except IOError:
+                print("Error: Could not write to state.json")
+
+
 
     def load_data(self):
         """ 
         JSON 파일에서 퀴즈 데이터를 불러오는 메서드
         """
-    
+        with open("state.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+            # 퀴즈 데이터를 불러온다.
+            quizzes = data.get("quizzes", [])
+
+            # 퀴즈 데이터가 없는 경우 기본 퀴즈 데이터를 초기화한다.
+            if(len(quizzes) == 0):
+                self.reset_quizzes()
+            else:
+                # 퀴즈 데이터를 Quiz 클래스의 인스턴스로 변환하여 저장한다.
+                self.quizzes = [
+                    Quiz(
+                        quiz_data["question"],
+                        quiz_data["choices"],
+                        quiz_data["answer"],
+                        quiz_data["hint"]
+                    )
+                    for quiz_data in quizzes
+                ]
+                self.best_score = data.get("best_score", 0)
 
 
-""" 
-기본 퀴즈 데이터 예시
-본인이 선택한 주제의 퀴즈 5개 이상을 직접 작성한다.
-각 퀴즈는 문제, 선택지(4개), 정답을 포함한다.
-Quiz 클래스의 인스턴스로 퀴즈를 생성한다.
-"""
-quizzes = [
-    Quiz(
-        "What is the capital of France?",
-        ["Berlin", "Madrid", "Paris", "Rome"],
-        3,
-        "It's known as the city of love."
-    ),
+    def reset_quizzes(self):
+        """ 
+        퀴즈 데이터를 초기화하는 메서드
+        기본 퀴즈 데이터 예시
+        본인이 선택한 주제의 퀴즈 5개 이상을 직접 작성한다.
+        각 퀴즈는 문제, 선택지(4개), 정답을 포함한다.
+        Quiz 클래스의 인스턴스로 퀴즈를 생성한다.
+        """
+        self.quizzes = [
+            Quiz(
+                "What is the capital of France?",
+                ["Berlin", "Madrid", "Paris", "Rome"],
+                3,
+                "It's known as the city of love."
+            ),
 
-    Quiz(
-        "What is the capital of Germany?",
-        ["Paris", "Berlin", "Rome", "Madrid"],
-        2,
-        "It's the largest city in Germany."
-    ),
+            Quiz(
+                "What is the capital of Germany?",
+                ["Paris", "Berlin", "Rome", "Madrid"],
+                2,
+                "It's the largest city in Germany."
+            ),
 
-    Quiz(
-        "What is the capital of Italy?",
-        ["Madrid", "London", "Rome", "Berlin"],
-        3,
-        "It's famous for the Colosseum."
-    ),
+            Quiz(
+                "What is the capital of Italy?",
+                ["Madrid", "London", "Rome", "Berlin"],
+                3,
+                "It's famous for the Colosseum."
+            ),
 
-    Quiz(
-        "What is the capital of Spain?",
-        ["Lisbon", "Madrid", "Paris", "Vienna"],
-        2,
-        "It's famous for the Prado Museum."
-    ),
+            Quiz(
+                "What is the capital of Spain?",
+                ["Lisbon", "Madrid", "Paris", "Vienna"],
+                2,
+                "It's famous for the Prado Museum."
+            ),
 
-    Quiz(
-        "What is the capital of Japan?",
-        ["Osaka", "Kyoto", "Tokyo", "Nagoya"],
-        3,
-        "It's one of the world's largest metropolitan areas."
-    )
-]
+            Quiz(
+                "What is the capital of Japan?",
+                ["Osaka", "Kyoto", "Tokyo", "Nagoya"],
+                3,
+                "It's one of the world's largest metropolitan areas."
+            )
+        ]
+
+
+
+quiz_game = QuizGame()
+
+quiz_game.play()
