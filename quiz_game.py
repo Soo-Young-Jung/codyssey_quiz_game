@@ -1,7 +1,8 @@
-import datetime
+from datetime import datetime
 import json
 import subprocess
 import platform
+import time
 
 class Quiz:
     """ 
@@ -147,11 +148,11 @@ class QuizGame:
         # 게임 기록 생성
         score_history = {
             "score": self.score,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "date": int(time.time()),
             "correct_quiz_count": correct_quiz_count,
             "total_quiz_count": total_quiz_count
         }
-        
+
         # 게임 기록 리스트에 추가
         self.save_score_historys.append(score_history)
 
@@ -219,6 +220,9 @@ class QuizGame:
         clear_console()
 
         print(f"현재 점수: {self.score}점 / 최고 점수: {self.best_score}점")
+        print("=== 점수 기록 ===")
+        for i, score_history in enumerate(self.save_score_historys, start=1):
+            print(f"{i}. 점수: {score_history['score']}점, 날짜: {datetime.fromtimestamp(score_history['date']).strftime('%Y-%m-%d %H:%M:%S')}, 정답을 맞춘 개수: {score_history['correct_quiz_count']}, 전체 퀴즈 수: {score_history['total_quiz_count']}")
 
         self.go_back_to_menu()
 
@@ -249,10 +253,10 @@ class QuizGame:
             "best_score": self.best_score,
             "save_score_historys": [
                 {
-                    "score": save_score_history.score,
-                    "date": save_score_history.date,
-                    "correct_quiz_count": save_score_history.correct_quiz_count,
-                    "total_quiz_count": save_score_history.total_quiz_count
+                    "score": save_score_history["score"],
+                    "date": save_score_history["date"],
+                    "correct_quiz_count": save_score_history["correct_quiz_count"],
+                    "total_quiz_count": save_score_history["total_quiz_count"]
                 }
                 for save_score_history in self.save_score_historys
             ]
