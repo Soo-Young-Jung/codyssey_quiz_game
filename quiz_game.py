@@ -64,7 +64,7 @@ class QuizGame:
         print("4. 점수 확인")
         print("5. 종료")
 
-        user_answer = get_number_input("Enter your answer (1-5): ", 1, 5)
+        user_answer = get_number_input("숫자를 선택하세요 (1-5): ", 1, 5)
 
         if user_answer == 1:
             self.play()
