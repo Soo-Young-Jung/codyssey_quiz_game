@@ -1,3 +1,4 @@
+import datetime
 import json
 import subprocess
 import platform
@@ -62,7 +63,7 @@ class QuizGame:
         print("4. 점수 확인")
         print("5. 종료")
 
-        user_answer = int(input("Enter your answer (1-5): "))
+        user_answer = get_number_input("Enter your answer (1-5): ", 1, 5)
 
         if user_answer == 1:
             self.play()
@@ -92,28 +93,45 @@ class QuizGame:
         
         for number, quizz in enumerate(self.quizzes, start=1):
 
+
             # 콘솔 화면을 지운다.
             clear_console()
 
             print("# 5번 선택시 힌트를 확인할 수 있습니다(사용시 5점 차감).")
-            print("# 9번 선택시 게임을 메뉴로 돌아갑니다.")
+            print("# 6번 선택시 게임을 메뉴로 돌아갑니다.")
 
             print(f"\n{number} 번 퀴즈 :")
             quizz.show_question()
-            user_answer = int(input("정답을 입력하세요 : "))
-            
-            if quizz.check_answer(user_answer):
-                print("정답입니다!")
-                self.score += 20
-                correct_quiz_count += 1
-            elif user_answer == 5:
+            user_answer = get_number_input("정답을 입력하세요 (1~4) : ", 1, 6)
 
+            if(user_answer == 6):
+                print("메뉴로 돌아갑니다.")
+                self.go_back_to_menu()
+                return
+            elif(user_answer == 5):
                 print(f"힌트: {quizz.hint}")
                 self.score -= 5
+                user_answer = get_number_input("정답을 입력하세요 (1~4) : ", 1, 6)
 
-                # 사용자가 힌트를 확인한 후 다시 답을 입력하도록 안내
-                user_answer = int(input("정답을 입력하세요 : "))
+                while True:
+                    if(user_answer == 6):
+                        print("메뉴로 돌아갑니다.")
+                        self.go_back_to_menu()
+                        return
+                    elif(user_answer == 5):
+                        print("힌트는 이미 확인하셨습니다. 다시 정답을 입력하세요.")
+                        user_answer = get_number_input("정답을 입력하세요 (1~4) : ", 1, 6)
+                        continue
+                    else:
+                        if quizz.check_answer(user_answer):
+                            print("정답입니다!")
+                            self.score += 20
+                            correct_quiz_count += 1
+                        else:
+                            print(f"오답입니다! 정답은 {quizz.answer}입니다.")
+                        break
 
+            else:
                 if quizz.check_answer(user_answer):
                     print("정답입니다!")
                     self.score += 20
@@ -121,12 +139,25 @@ class QuizGame:
                 else:
                     print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
-            else:
-                print(f"오답입니다! 정답은 {quizz.answer}입니다.")
 
+        # 힌트 사용으로 인해 점수가 0점 미만이 되는 경우를 처리한다.
+        if(self.score < 0):
+            self.score = 0
+
+        # 게임 기록 생성
+        score_history = {
+            "score": self.score,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "correct_quiz_count": correct_quiz_count,
+            "total_quiz_count": total_quiz_count
+        }
+        
+        # 게임 기록 리스트에 추가
+        self.save_score_historys.append(score_history)
 
         # 콘솔 화면을 지운다.
         clear_console()
+
         print(f"\n게임 종료! 최종 점수: {self.score}점")
         print(f"정답 개수: {correct_quiz_count}/{total_quiz_count}")
 
@@ -144,14 +175,14 @@ class QuizGame:
         새로운 퀴즈를 추가하는 메서드
         """
 
-        question = input("퀴즈를 입력하세요 : ")
+        question = get_text_input("퀴즈를 입력하세요 : ")
         choices = []
         for i in range(4):
-            choice = input(f"{i + 1}번 선택지를 입력하세요 : ")
+            choice = get_text_input(f"{i + 1}번 선택지를 입력하세요 : ")
             choices.append(choice)
 
-        answer = int(input("정답 번호를 입력하세요 (1-4) : "))
-        hint = input("퀴즈에 대한 힌트를 입력하세요 : ")
+        answer = get_number_input("정답 번호를 입력하세요 (1~4) : ", 1, 4)
+        hint = get_text_input("힌트를 입력하세요 : ")
 
         new_quiz = Quiz(question, choices, answer, hint)
         self.quizzes.append(new_quiz)
@@ -244,28 +275,44 @@ class QuizGame:
         best_score: 최고 점수(또는 최고 정답 수 등)
         save_score_historys: 점수 기록 목록
         """
-        with open("state.json", "r", encoding="utf-8") as file:
-            data = json.load(file)
 
-            # 퀴즈 데이터를 불러온다.
-            quizzes = data.get("quizzes", [])
+        try:
+            with open("state.json", "r", encoding="utf-8") as file:
+                data = json.load(file)
 
-            # 퀴즈 데이터가 없는 경우 기본 퀴즈 데이터를 초기화한다.
-            if(len(quizzes) == 0):
-                self.reset_quizzes()
-            else:
-                # 퀴즈 데이터를 Quiz 클래스의 인스턴스로 변환하여 저장한다.
-                self.quizzes = [
-                    Quiz(
-                        quiz_data["question"],
-                        quiz_data["choices"],
-                        quiz_data["answer"],
-                        quiz_data["hint"]
-                    )
-                    for quiz_data in quizzes
-                ]
-                self.best_score = data.get("best_score", 0)
-                self.save_score_historys = data.get("save_score_historys", []);
+                # 퀴즈 데이터를 불러온다.
+                quizzes = data.get("quizzes", [])
+
+                # 퀴즈 데이터가 없는 경우 기본 퀴즈 데이터를 초기화한다.
+                if(len(quizzes) == 0):
+                    self.reset_quizzes()
+                else:
+                    # 퀴즈 데이터를 Quiz 클래스의 인스턴스로 변환하여 저장한다.
+                    self.quizzes = [
+                        Quiz(
+                            quiz_data["question"],
+                            quiz_data["choices"],
+                            quiz_data["answer"],
+                            quiz_data["hint"]
+                        )
+                        for quiz_data in quizzes
+                    ]
+                    self.best_score = data.get("best_score", 0)
+                    self.save_score_historys = data.get("save_score_historys", []);
+
+        except FileNotFoundError:
+            print("데이터 파일이 없습니다. 기본 데이터를 사용합니다.")
+            self.reset_quizzes()
+
+        except json.JSONDecodeError:
+            print("데이터 파일이 손상되었습니다. 기본 데이터를 사용합니다.")
+            self.reset_quizzes()
+
+        except OSError as error:
+            print(f"데이터 파일을 읽을 수 없습니다: {error}")
+            self.reset_quizzes()
+
+
 
     def go_back_to_menu(self):
         """ 
@@ -330,5 +377,59 @@ def clear_console():
     else:
         subprocess.run(["clear"], shell=True)
 
-quiz_game = QuizGame()
-quiz_game.show_menu()
+def get_number_input(message, min_value, max_value):
+    """
+    사용자로부터 숫자 입력을 받고 범위를 벗어나면 다시 입력을 요청하는 함수
+    값이 정상적인 경우에만 반환한다.
+    """
+    while True:
+        user_input = input(message).strip()
+
+        if not user_input:
+            print("입력값이 비어 있습니다. 다시 입력하세요.")
+            continue
+
+        try:
+            number = int(user_input)
+        except ValueError:
+            print("숫자만 입력할 수 있습니다.")
+            continue
+
+        if number < min_value or number > max_value:
+            print(f"{min_value}~{max_value} 사이의 숫자를 입력하세요.")
+            continue
+
+        return number
+
+def get_text_input(message):
+    """
+    사용자로부터 텍스트 입력을 받고 빈 문자열이 입력되면 다시 입력을 요청하는 함수
+    값이 정상적인 경우에만 반환한다.
+    """
+    while True:
+        user_input = input(message).strip()
+
+        if not user_input:
+            print("빈 문자열은 입력할 수 없습니다.")
+            continue
+
+        return user_input
+
+def main():
+    quiz_game = QuizGame()
+
+    try:
+        quiz_game.show_menu()
+
+    except KeyboardInterrupt:
+        print("\n사용자 요청으로 프로그램을 종료합니다.")
+
+    except EOFError:
+        print("\n입력이 종료되어 프로그램을 종료합니다.")
+
+    finally:
+        quiz_game.save_data()
+
+
+if __name__ == "__main__":
+    main()
