@@ -61,21 +61,24 @@ class QuizGame:
         print("=== Quiz Game ===")
         print("1. 퀴즈 풀기")
         print("2. 퀴즈 추가")
-        print("3. 퀴즈 목록 보기")
-        print("4. 점수 확인")
-        print("5. 종료")
+        print("3. 퀴즈 삭제")
+        print("4. 퀴즈 목록 보기")
+        print("5. 점수 확인")
+        print("6. 종료")
 
-        user_answer = get_number_input("숫자를 선택하세요 (1-5): ", 1, 5)
+        user_answer = get_number_input("숫자를 선택하세요 (1-6): ", 1, 6)
 
         if user_answer == 1:
             self.play()
         elif user_answer == 2:
             self.add_quiz()
         elif user_answer == 3:
-            self.list_quizzes()
+            self.delete_quiz()
         elif user_answer == 4:
-            self.show_score()
+            self.list_quizzes()
         elif user_answer == 5:
+            self.show_score()
+        elif user_answer == 6:
             print("게임을 종료합니다.")
             exit()
 
@@ -198,6 +201,46 @@ class QuizGame:
         self.quizzes.append(new_quiz)
 
         self.save_data()
+        self.go_back_to_menu()
+
+    def delete_quiz(self):
+        """ 
+        퀴즈를 삭제하는 메서드
+        """
+
+        total_quiz_count = len(self.quizzes) # 총 퀴즈 개수를 계산한다.
+        clear_console()
+        
+        for number, quizz in enumerate(self.quizzes, start=1):
+            print(f"\n{number} 번 퀴즈 :")
+            print(f"퀴즈: {quizz.question}")
+
+        print("# 0번 선택시 게임을 메뉴로 돌아갑니다.")
+        quizze_number = get_number_input("삭제할 퀴즈 번호를 입력하세요 : ", 0, total_quiz_count)
+
+        if(quizze_number != 0):
+
+            # 남은 퀴즈수가 한개인 경우
+            if(total_quiz_count == 1):
+
+                while True:
+                    user_answer = get_text_input("퀴즈를 모두 삭제하는 경우 초기 퀴즈문제 5개가 다시 세팅 됩니다. 이대로 진행하시겠습니까?(Y/N)").upper()
+
+                    if(user_answer == "Y"):
+                        self.quizzes.pop(quizze_number - 1)
+                        self.reset_quizzes()
+                        self.save_data()
+                        break
+                    elif(user_answer == "N"):
+                        break
+                    else :
+                        print("Y 또는 N 을 입력해 주세요.")
+                
+            else:
+                self.quizzes.pop(quizze_number - 1)
+                self.save_data()
+        
+
         self.go_back_to_menu()
 
 
