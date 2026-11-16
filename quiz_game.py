@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import random
 import subprocess
 import platform
 import time
@@ -91,9 +92,16 @@ class QuizGame:
         self.score = 0  # 게임 시작 시 점수를 초기화한다.
         total_quiz_count = len(self.quizzes) # 총 퀴즈 개수를 계산한다.
         correct_quiz_count = 0  # 정답 개수를 초기화한다.
-        
-        for number, quizz in enumerate(self.quizzes, start=1):
 
+        # 콘솔 화면을 지운다.
+        clear_console()
+        # 유저가 입력한 수 만큼 퀴즈 제시
+        quiz_count = get_number_input(f"풀고자 하는 퀴즈 개수를 입력해주세요(최대 {total_quiz_count}개) : ", 1, total_quiz_count)
+
+        # 퀴즈 리스트를 한차례 랜덤으로 섞음
+        shuffled_quiz = random.sample(self.quizzes, quiz_count)
+
+        for number, quizz in enumerate(shuffled_quiz, start=1):
 
             # 콘솔 화면을 지운다.
             clear_console()
@@ -150,7 +158,7 @@ class QuizGame:
             "score": self.score,
             "date": int(time.time()),
             "correct_quiz_count": correct_quiz_count,
-            "total_quiz_count": total_quiz_count
+            "total_quiz_count": quiz_count
         }
 
         # 게임 기록 리스트에 추가
@@ -167,8 +175,9 @@ class QuizGame:
             self.best_score = self.score
             print(f"축하합니다! 새로운 최고 점수: {self.best_score}점")
 
-        self.save_data()
+        self.save_data() 
         self.go_back_to_menu()
+       
 
 
     def add_quiz(self):
